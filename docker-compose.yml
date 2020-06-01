@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  mediatrdemo:
+    image: ${DOCKER_REGISTRY-}mediatrdemo
+    build:
+      context: .
+      dockerfile: Dockerfile

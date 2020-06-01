@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.128
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatRDemo", "MediatRDemo.csproj", "{8C8852F3-5BE0-42EE-B3D2-0012AFC99567}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,9 +15,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8C8852F3-5BE0-42EE-B3D2-0012AFC99567}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -30,5 +29,23 @@ Global
 		{8C8852F3-5BE0-42EE-B3D2-0012AFC99567}.Release|x64.Build.0 = Release|Any CPU
 		{8C8852F3-5BE0-42EE-B3D2-0012AFC99567}.Release|x86.ActiveCfg = Release|Any CPU
 		{8C8852F3-5BE0-42EE-B3D2-0012AFC99567}.Release|x86.Build.0 = Release|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Debug|x64.Build.0 = Debug|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Debug|x86.Build.0 = Debug|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Release|x64.ActiveCfg = Release|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Release|x64.Build.0 = Release|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Release|x86.ActiveCfg = Release|Any CPU
+		{619F2FB6-D026-48B7-A528-6FC40EAE4FC6}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {41ED66F7-1D26-4869-B17E-87A5E7ADCC54}
 	EndGlobalSection
 EndGlobal
