@@ -5,4 +5,4 @@ services:
     image: ${DOCKER_REGISTRY-}mediatrdemo
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: MediatRDemo\Dockerfile

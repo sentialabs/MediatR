@@ -3,7 +3,7 @@
   <PropertyGroup Label="Globals">
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Windows</DockerTargetOS>
-    <ProjectGuid>619f2fb6-d026-48b7-a528-6fc40eae4fc6</ProjectGuid>
+    <ProjectGuid>709f7bda-87cd-41aa-9fdf-94a10329f438</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://{ServiceIPAddress}{ServicePort}</DockerServiceUrl>
     <DockerServiceName>mediatrdemo</DockerServiceName>
