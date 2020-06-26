@@ -250,9 +250,15 @@ This weird escaping around the `hello` is necessary, because otherwise it isn't 
 $ curl 
     --request POST \
     --header "Content-Type: application/json" \
-    --data '' \
+    --data '\"\"' \
     http://localhost:5000
-{"type":"https://tools.ietf.org/html/rfc7231#section-6.5.1","title":"One or more validation errors occurred.","status":400,"traceId":"|b3bf985d-4b67db25a45cb80a.","errors":{"":["A non-empty request body is required."]}}
+FluentValidation.ValidationException: Validation failed:
+ -- ResponseMessage: We need to know what you want from us
+   at MediatRDemo.ValidationBehavior`2.Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate`1 next) in /home/sanne/MediatRDemo/ValidationBehaviour.cs:line 33
+
 ```
 
-Yikes, that gives us an error. Note how it returns the message you told it to return in the 
+Yikes, that gives us an error. Note how it returns the message you told it to return in the `PingValidator`, but it also includes the complete stacktrace with it. This is something that could use some improvement. For example, you could have a generic `TResponse` implementation that always has an `Error` attribute and set that. Then you could simply return a new `TResponse` with that set.
+
+### Unit testing
+Last but definitely not least, you could (and probably should) unit test these modules fairly simply. 
