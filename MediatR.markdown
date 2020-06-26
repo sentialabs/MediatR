@@ -60,7 +60,9 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-This makes it so you can get the `IMediator` interface from dependency injection in .NET Core. Don't forget to add `using MediatR;` to the top of the file if your IDE didn't prompt you for it. Short recap of what we've done so far:
+This makes it so you can get the `IMediator` interface from dependency injection in .NET Core. Don't forget to add `using MediatR;` to the top of the file if your IDE didn't prompt you for it. We're passing in the type in which MediatR should look for implementations of `IRequest` and `IRequestHandler`. In this case, that's the same project as the `Startup` class. In a bigger application, this might be another assembly.
+
+Short recap of what we've done so far:
 
 1. Create a new project
 2. Add the MediatR and dependency injection packages
@@ -141,4 +143,116 @@ namespace MediatRDemo.Controllers
 If you now run `dotnet run` in the root of the project, everything should compile and you should be able to access [http://localhost:5000/ping](http://localhost:5000/ping). This should show you the text you entered for the `ReponseMessage` in your controller. So far so good, but where are you going to put validation?
 
 ### Adding validations
-A significant part of time in web applications is spend validating user input. You'll never now what the user will send you. To make this simpler we'll use FluentValidations
+A significant part of time in web applications is spend validating user input. You'll never now what the user will send you. To make this simpler we'll use FluentValidations. This is available as a [NuGet package](https://www.nuget.org/packages/FluentValidation.DependencyInjectionExtensions) as well. In this case, we're directly installing the dependency injection extensions, this will download and install FluentValidation as a dependency.
+
+Install this with `dotnet add package FluentValidation.DependencyInjectionExtensions` in the root of your project. Next, we need to update the `ConfigureServices` to load the validators. Add the following line to that method, and don't forget to add `using FluentValidation;` at the top of the file.
+
+```csharp
+services.AddValidatorsFromAssemblyContaining<Startup>();
+```
+
+You need to pass in the assembly in which your validators are. In this case, it's the same as the `Startup` class, but just like with adding MediatR it might be somewhere else in a bigger project. So change it where necessary. 
+
+We'll add validators to the same file as the `IRequest` and `IRequestHandler`, this'll keep everything nice and contained for this demo. In reality, you could have a completely different namespace or assembly for the validators. 
+
+To add a validator, open the `RequestHandlers/PingHandler.cs` file again, and add a `PingValidator` class. This class must inherit from the `FluentValidation.AbstractValidator<Ping>` class. `Ping`, in this case, is referring to the `IRequest` we want to validate. As an example, we'll check that the `ResponseMessage` is not empty but also not longer than 512 characters. We'll do that by adding a constructor with these validations so it'll look like this:
+
+```csharp
+public class PingValidator : AbstractValidator<Ping>
+{
+    public PingValidator()
+    {
+        RuleFor(x => x.ResponseMessage)
+            .NotEmpty()
+            .WithMessage("We need to know what you want from us")
+            .DependentRules(() => 
+        RuleFor(x => x.ResponseMessage.Length)
+            .LessThanOrEqualTo(512)
+            .WithMessage("We will not reply with more than 512 characters"));
+    }
+}
+```
+
+Here, too, you must add the `using FluentValidation` line to the list of usings or it won't compile. So, now we have the `IRequest`, the `IRequestHandler` and the validation set up, but we still need to add something that'll call your validations on each request to MediatR. To do this, MediatR has something called `IPipelineBehavior`. This is an interface that gives you access to the MediatR pipeline, and using this we'll validate the incoming `IRequest`. There are a lot of examples for this online, but I'm using a combination from multiple sources that looks like this:
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentValidation;
+using MediatR;
+
+namespace MediatRDemo
+{
+    public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    {
+        private readonly IEnumerable<IValidator<TRequest>> _validators;
+
+        public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
+        {
+            _validators = validators;
+        }
+
+        public Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        {
+            var context = new ValidationContext(request);
+            var failures = _validators
+                .Select(v => v.Validate(context))
+                .SelectMany(result => result.Errors)
+                .Where(f => f != null)
+                .ToList();
+
+            if (failures.Count != 0)
+            {
+                throw new ValidationException(failures);
+            }
+
+            return next();
+        }
+    }
+}
+```
+
+This'll get all the registered `IValidator<TRequest>` instances from the dependency injection framework, and then call all of them. If none of these give a failure, the request passes on to the next stage in the pipeline via the call to `next()`. But if there is a failure, we'll throw a new `ValidationException` containing a list of all failures. There are improvements to be had, for example if you have a lot of validators you want to call for each request you might want to call them in parallel.
+
+To have MediatR call this `IPipelineBehavior` on each request, add the following line to the `ConfigureServices` method in the `Startup` class:
+
+```csharp
+services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+```
+
+We're adding it as a transient here to make sure we don't run the wrong validators. With this done, all we need to do is give the outside world a way to trigger this validator. The current `Get` method on the controller isn't likely to trigger a failure on the validator because it has a constant string that's being sent. To make it a bit more interesting, let's add a `Post` method that'll accept an input and try to put it into the `ResponseMessage`. Add this to your `PingController`:
+
+```csharp
+[HttpPost]
+public Task<string> Post([FromBody]string responseMessage)
+{
+    return _mediator.Send(new Ping { ResponseMessage = responseMessage });
+}
+```
+
+If you now run the application again using `dotnet run`, it should still work just fine when doing a simple GET request via the browser. However, we can now also POST data to the controller and have it return it to us. Let's use curl to do some POST requests to the controller.
+
+Let's start with something simple, something that'll surely pass the validator:
+```
+$ curl 
+    --request POST \
+    --header "Content-Type: application/json" \
+    --data '"hello"' \
+    http://localhost:5000
+hello
+```
+
+This weird escaping around the `hello` is necessary, because otherwise it isn't a proper JSON string. The request should just return `hello` back to you. So far so good. What happens when we do the same request, but with an empty the `--data` argument? Let's try it:
+
+```
+$ curl 
+    --request POST \
+    --header "Content-Type: application/json" \
+    --data '' \
+    http://localhost:5000
+{"type":"https://tools.ietf.org/html/rfc7231#section-6.5.1","title":"One or more validation errors occurred.","status":400,"traceId":"|b3bf985d-4b67db25a45cb80a.","errors":{"":["A non-empty request body is required."]}}
+```
+
+Yikes, that gives us an error. Note how it returns the message you told it to return in the 
