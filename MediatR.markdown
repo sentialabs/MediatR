@@ -261,4 +261,24 @@ FluentValidation.ValidationException: Validation failed:
 Yikes, that gives us an error. Note how it returns the message you told it to return in the `PingValidator`, but it also includes the complete stacktrace with it. This is something that could use some improvement. For example, you could have a generic `TResponse` implementation that always has an `Error` attribute and set that. Then you could simply return a new `TResponse` with that set.
 
 ### Unit testing
-Last but definitely not least, you could (and probably should) unit test these modules fairly simply. 
+Last but definitely not least, you probably should unit test your code. The `IRequestHandler` instances are probably the easiest, just call them from your test and get the results you want. The FluentValidation parts take a little more work, but are still relatively easy. When instantiating them you can just call `Validate()` on the instance and pass data in via one of the arguments. A test method for the `PingValidator` could look something like this:
+
+```csharp
+[TestMethod]
+public void EmptyResponseMessage_ShouldThrowValidationException()
+{
+    var _sut = new PingValidator();
+    var ping = new Ping { ResponseMessage = null };
+
+    var validationResult = _sut.Validate(ping);
+
+    validationResult.IsValid.Should().BeFalse();
+    validationResult.Errors.Should().NotBeEmpty();
+    validationResult.Errors[0].ErrorMessage.Should().Be("We need to know what you want from us");
+}
+```
+
+This is using the Microsoft.VisualStudio.TestTools.UnitTesting framework and FluentValidations for the assertions. In this case we instantiate the `PingValidator` and give it a `Ping` instance with the `ResponseMessage` set to `null`. We then specify that it shouldn't be valid, that the `Errors` property of the result shouldn't be empty and that the first error should be the text we expect.
+
+## Wrapping it all up
+So, by now you should have some idea of what the mediator pattern is, and how to implement it using the MediatR package. Also, we've shown you how to add some validations to it using FluentValidators. Finally, a short look into unit testing validators to wrap it up. If you want to know more about MediatR, there are a bunch of examples and a some documentation on their own wiki on GitHub. You can find that over at [https://github.com/jbogard/MediatR/wiki](https://github.com/jbogard/MediatR/wiki).
